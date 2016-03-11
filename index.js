@@ -11,8 +11,7 @@ var numUsers = 10;
 
   prnt("Connecting...");
   var connection = joinServer({
-    peer: peer => prnt("Made peer with "+peer),
-    disconnect: peer => prnt(peer+" disconnected."),
+    peer: peer => prnt("Made peer with "+peer)
   });
 
   connection.on('msg', (id, msg) => {
@@ -24,12 +23,27 @@ var numUsers = 10;
     }
   });
 
+  connection.on('disconnect', peer => {
+    prnt(peer+" disconnected.");
+    if (connection.getPeers().length < 2){
+      prnt("Looking for more peers");
+      prnt("Made "+connection.searchForPeers()+" new peers.");
+    }
+  });
+
   users.push(connection);
   prnt("Connected with ID "+connection.id);
   prnt(connection.getPeers());
 
   var randMsg = () => setTimeout(() => {
     var peerID = utils.randFrom(connection.getPeers());
+
+    if (peerID === undefined || utils.rand(10) === 1){
+      if (peerID === undefined) prnt("No more peers are connected.");
+      prnt("Disconnecting...")
+      return connection.disconnect();
+    }
+
     prnt("Sending message to peer "+peerID);
     connection.send(peerID, {type:'msg', txt:'HI!!'});
     randMsg();

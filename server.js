@@ -49,12 +49,14 @@ function makeServer(){
 
   function searchForPeers(id){
     // Make a few peers
-    makePeer(id, randPeer().id);
-    makePeer(id, randPeer().id);
-    makePeer(id, randPeer().id);
+    return [...new Array(5)].reduce((acc,v)=>acc+makePeer(id, randPeer().id),0);
   }
 
   function sendEvent(event, id){
+    if (!users[id]){
+      throw new Error("Couldn't find user with id `"+id+"`");
+    }
+
     if (users[id].hooks[event]){
       users[id].hooks[event].apply(null, Array.prototype.slice.call(arguments, 2));
     }
@@ -62,7 +64,10 @@ function makeServer(){
 
   function disconnect(id){
     var peers = users[id].peers;
-    peers.forEach(p => sendEvent('disconnect', p, id));
+    peers.forEach(p => {
+      users[p].peers.splice(users[p].peers.indexOf(id), 1);
+      sendEvent('disconnect', p, id)
+    });
     delete users[id];
   }
 
