@@ -6,7 +6,7 @@
 
 var utils = require('./utils');
 
-function makeServer(){
+function makeServer(delay){
   var users = {};
 
   function join(hooks) {
@@ -56,9 +56,8 @@ function makeServer(){
     if (!users[id]){
       throw new Error("Couldn't find user with id `"+id+"`");
     }
-
     if (users[id].hooks[event]){
-      users[id].hooks[event].apply(null, Array.prototype.slice.call(arguments, 2));
+      setTimeout(users[id].hooks[event].apply(null, Array.prototype.slice.call(arguments, 2)), utils.rand(delay||0));
     }
   }
 
@@ -71,17 +70,17 @@ function makeServer(){
     delete users[id];
   }
 
-  return function joinServer(hooks){
-    var clientID = join(hooks || {});
+  return function joinServer(hooks, cb){
+    var clientID = join(cb ? hooks : {});
 
-    return {
+    return (cb || hooks)({
       id: clientID,
       getPeers: () => users[clientID].peers,
       on: (event, cb) => users[clientID].hooks[event] = cb,
       send: (targetID, msg) => sendEvent('msg', targetID, clientID, msg),
       searchForPeers: () => searchForPeers(clientID),
       disconnect: () => disconnect(clientID),
-    };
+    });
   };
 }
 
