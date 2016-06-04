@@ -47,9 +47,17 @@ function makeServer(delay){
     return users[keys[utils.rand(keys.length)]];
   }
 
+  function newArray(num){ 
+    var a = [];
+    for (var i = 0; i < num; i++){
+      a.push(undefined);
+    }
+    return a;
+  }
+
   function searchForPeers(id){
     // Make a few peers
-    return [...new Array(5)].reduce((acc,v)=>acc+makePeer(id, randPeer().id),0);
+    return newArray(5).reduce((acc,v)=>acc+makePeer(id, randPeer().id),0);
   }
 
   function sendEvent(event, id){
